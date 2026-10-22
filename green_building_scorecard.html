@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Green Building Scorecard</title>
+<style>
+  :root{
+    --bg:#f5f7f4;
+    --card:#ffffff;
+    --ink:#1c2b22;
+    --muted:#5b6d61;
+    --border:#e1e8de;
+    --accent:#2f6e4f;
+    --accent-light:#e8f3ea;
+    --platinum:#5b6b7a;
+    --gold:#b8860b;
+    --shadow: 0 1px 3px rgba(20,40,25,0.06), 0 4px 14px rgba(20,40,25,0.06);
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121814;
+      --card:#1a221c;
+      --ink:#e8efe8;
+      --muted:#9fb0a3;
+      --border:#2b3830;
+      --accent:#5fb583;
+      --accent-light:#1e2e23;
+      --platinum:#a9bccb;
+      --gold:#e0b23d;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121814;
+    --card:#1a221c;
+    --ink:#e8efe8;
+    --muted:#9fb0a3;
+    --border:#2b3830;
+    --accent:#5fb583;
+    --accent-light:#1e2e23;
+    --platinum:#a9bccb;
+    --gold:#e0b23d;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body { height: 100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  header{
+    margin-bottom: 32px;
+  }
+  .eyebrow{
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  h1{
+    font-size: clamp(28px, 4vw, 38px);
+    margin: 0 0 8px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .sub{
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+    gap: 14px;
+    margin: 28px 0 32px;
+  }
+  .stat{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .stat .num{ font-size: 24px; font-weight: 700; color: var(--accent); }
+  .stat .lbl{ font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+  .controls{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items:center;
+    margin-bottom: 22px;
+    background: var(--card);
+    border:1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  .search-box{
+    flex: 1 1 240px;
+    position: relative;
+  }
+  .search-box input{
+    width:100%;
+    padding: 11px 14px 11px 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    outline:none;
+  }
+  .search-box input:focus{ border-color: var(--accent); }
+  .search-box svg{
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    width:16px; height:16px; color:var(--muted);
+  }
+  select{
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    outline:none;
+    cursor:pointer;
+  }
+  select:focus{ border-color: var(--accent); }
+  .clear-btn{
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 13.5px;
+    cursor:pointer;
+  }
+  .clear-btn:hover{ border-color: var(--accent); color: var(--accent); }
+
+  .calc-card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  .calc-head{ margin-bottom: 16px; }
+  .calc-title{ font-size: 18px; margin: 0 0 4px; font-weight:700; }
+  .calc-sub{ font-size: 13.5px; color: var(--muted); margin:0; line-height:1.5; }
+  .calc-body{ display:flex; flex-direction:column; gap:14px; }
+  .calc-field label{
+    display:block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; font-weight:600;
+  }
+  .calc-field label span{ font-weight:400; color: var(--muted); opacity:.8; }
+  .calc-field input[type="text"], .calc-field input[type="number"]{
+    width:100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    outline:none;
+  }
+  .calc-field input:focus{ border-color: var(--accent); }
+  .calc-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 12px;
+  }
+  .calc-result{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background: var(--accent-light);
+    border-radius: 12px;
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .cr-left{ display:flex; align-items:baseline; gap:12px; }
+  .cr-total{ font-size: 24px; font-weight:800; color: var(--ink); }
+  .cr-pct{ font-size: 16px; font-weight:700; color: var(--accent); }
+  .cr-right{ text-align:right; }
+  .cr-label{ font-size: 11.5px; color: var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+  .cr-badge{
+    display:inline-block;
+    font-size: 14px;
+    font-weight:800;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+  }
+  .cr-badge.Silver{ background:#8a8f7a; }
+  .cr-badge.Bronze{ background:#a06a3a; }
+  .cr-badge.Certified{ background: var(--muted); }
+  .cr-badge.Gold{ background: var(--gold); }
+  .cr-badge.Platinum{ background: var(--platinum); }
+  .calc-actions{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .btn-primary{
+    background: var(--accent);
+    color:#fff;
+    border:none;
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-primary:hover{ opacity:.9; }
+  .btn-primary:disabled{ opacity:.5; cursor:not-allowed; }
+  .calc-note{ font-size: 11.5px; color: var(--muted); }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .card:hover{ transform: translateY(-2px); box-shadow: 0 6px 20px rgba(20,40,25,.12); }
+  .card-top{
+    display:flex; justify-content: space-between; align-items:flex-start; gap:10px;
+    margin-bottom: 8px;
+  }
+  .card h3{
+    font-size: 16.5px;
+    margin: 0;
+    line-height:1.3;
+    font-weight: 700;
+  }
+  .badge{
+    flex-shrink:0;
+    font-size: 11.5px;
+    font-weight:700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space:nowrap;
+  }
+  .badge.Platinum{ background: #e7ebee; color: var(--platinum); }
+  .badge.Gold{ background: #f8edd2; color: var(--gold); }
+  :root[data-theme="dark"] .badge.Platinum, @media (prefers-color-scheme: dark){ .badge.Platinum{ background:#2a323b;} }
+  .loc{
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .loc svg{ width:12px; height:12px; vertical-align:-1px; margin-right:4px;}
+  .score-row{
+    display:flex; align-items:center; gap:10px;
+  }
+  .bar-track{
+    flex:1;
+    height: 7px;
+    background: var(--bg);
+    border-radius: 999px;
+    overflow:hidden;
+    border: 1px solid var(--border);
+  }
+  .bar-fill{
+    height:100%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  .pct{
+    font-size: 13px;
+    font-weight:700;
+    color: var(--accent);
+    width: 46px;
+    text-align:right;
+  }
+  .cert-text{
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height:1.4;
+  }
+
+  .empty{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  /* Modal */
+  .overlay{
+    position: fixed; inset:0;
+    background: rgba(10,15,10,0.45);
+    display:none;
+    align-items:center; justify-content:center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .overlay.active{ display:flex; }
+  .modal{
+    background: var(--card);
+    border-radius: 18px;
+    max-width: 560px;
+    width:100%;
+    max-height: 86vh;
+    overflow-y:auto;
+    padding: 28px 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+  }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:flex-start; gap: 12px;
+    margin-bottom: 4px;
+  }
+  .modal h2{ font-size: 22px; margin: 0 0 6px; line-height:1.3; }
+  .modal .loc{ margin-bottom: 18px; }
+  .close-btn{
+    border:none; background: var(--bg); color:var(--muted);
+    width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;
+    flex-shrink:0;
+  }
+  .close-btn:hover{ color: var(--ink); }
+  .detail-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin: 16px 0 18px;
+  }
+  .detail-item{
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .detail-item .dl{ font-size: 11px; color: var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:3px;}
+  .detail-item .dv{ font-size: 15px; font-weight:700; }
+  .total-box{
+    background: var(--accent-light);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom: 14px;
+  }
+  .total-box .tl{ font-size: 13px; color: var(--muted); }
+  .total-box .tv{ font-size: 22px; font-weight:800; color: var(--accent); }
+  .cert-full{
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height:1.5;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  footer{
+    margin-top: 48px;
+    text-align:center;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Sustainability Report</div>
+    <h1>Green Building Scorecard</h1>
+    <p class="sub">A comparative scorecard of certified green buildings across India, evaluated on six environmental criteria — sustainable site, energy, water, materials, indoor quality and innovation.</p>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search by building name or location...">
+    </div>
+    <select id="companySelect">
+      <option value="">All Buildings</option>
+    </select>
+    <select id="certSelect">
+      <option value="">All Certifications</option>
+      <option value="Platinum">Platinum</option>
+      <option value="Gold">Gold</option>
+    </select>
+    <select id="locSelect">
+      <option value="">All Locations</option>
+    </select>
+    <button class="clear-btn" id="clearBtn">Clear filters</button>
+  </div>
+
+  <div class="calc-card" id="calcCard">
+    <div class="calc-head">
+      <div>
+        <h2 class="calc-title">Score Your Own Building</h2>
+        <p class="calc-sub">Enter marks (0–10) for each criterion to calculate the total, percentage and certification category.</p>
+      </div>
+    </div>
+    <div class="calc-body">
+      <div class="calc-field">
+        <label>Building Name</label>
+        <input type="text" id="calcName" placeholder="e.g. My Office Campus">
+      </div>
+      <div class="calc-field">
+        <label>Location</label>
+        <input type="text" id="calcLoc" placeholder="e.g. Bengaluru">
+      </div>
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>Sustainable Site <span>/10</span></label>
+          <input type="number" min="0" max="10" step="0.1" class="calc-score" id="c_site" value="0">
+        </div>
+        <div class="calc-field">
+          <label>Energy Efficiency <span>/10</span></label>
+          <input type="number" min="0" max="10" step="0.1" class="calc-score" id="c_energy" value="0">
+        </div>
+        <div class="calc-field">
+          <label>Water Efficiency <span>/10</span></label>
+          <input type="number" min="0" max="10" step="0.1" class="calc-score" id="c_water" value="0">
+        </div>
+        <div class="calc-field">
+          <label>Materials & Resources <span>/10</span></label>
+          <input type="number" min="0" max="10" step="0.1" class="calc-score" id="c_materials" value="0">
+        </div>
+        <div class="calc-field">
+          <label>Indoor Env. Quality <span>/10</span></label>
+          <input type="number" min="0" max="10" step="0.1" class="calc-score" id="c_indoor" value="0">
+        </div>
+        <div class="calc-field">
+          <label>Innovation <span>/10</span></label>
+          <input type="number" min="0" max="10" step="0.1" class="calc-score" id="c_innovation" value="0">
+        </div>
+      </div>
+
+      <div class="calc-result" id="calcResult">
+        <div class="cr-left">
+          <div class="cr-total"><span id="crTotalVal">0</span>/60</div>
+          <div class="cr-pct" id="crPctVal">0%</div>
+        </div>
+        <div class="cr-right">
+          <div class="cr-label">Certification Category</div>
+          <div class="cr-badge" id="crBadge">Certified</div>
+        </div>
+      </div>
+
+      <div class="calc-actions">
+        <button class="btn-primary" id="addToListBtn">Add to comparison list</button>
+        <span class="calc-note">Based on: 90–100% Platinum · 80–89% Gold · 70–79% Silver · 60–69% Bronze · Below 60% Certified</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="emptyState" style="display:none;">No buildings match your filters.</div>
+
+  <footer>Scores are simplified academic/assignment scores based on documented green features and certifications — not official LEED, GRIHA or IGBC ratings.</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+const data = [
+  {name:"CII–Sohrabji Godrej Green Business Centre", loc:"Hyderabad", cert:"LEED Platinum / IGBC Net Zero Platinum", site:9, energy:10, water:9, materials:9, indoor:9, innovation:10, total:56, pct:93.3, level:"Platinum"},
+  {name:"Suzlon One Earth", loc:"Pune", cert:"LEED Platinum / GRIHA 5-Star", site:10, energy:10, water:10, materials:9, indoor:10, innovation:10, total:59, pct:98.3, level:"Platinum"},
+  {name:"ITC Green Centre", loc:"Gurugram", cert:"LEED Platinum", site:9, energy:10, water:10, materials:9, indoor:9, innovation:10, total:57, pct:95.0, level:"Platinum"},
+  {name:"Indira Paryavaran Bhawan", loc:"New Delhi", cert:"LEED India Platinum / GRIHA 5-Star", site:10, energy:10, water:10, materials:9, indoor:10, innovation:10, total:59, pct:98.3, level:"Platinum"},
+  {name:"Infosys Global Education Centre", loc:"Mysuru", cert:"LEED Platinum-certified campus/buildings", site:9, energy:9, water:9, materials:9, indoor:10, innovation:9, total:55, pct:91.7, level:"Platinum"},
+  {name:"Rajiv Gandhi International Airport", loc:"Hyderabad", cert:"LEED Platinum Passenger Terminal", site:9, energy:9, water:9, materials:8, indoor:9, innovation:10, total:54, pct:90.0, level:"Platinum"},
+  {name:"Olympia Technology Park", loc:"Chennai", cert:"LEED Gold", site:8, energy:8, water:8, materials:8, indoor:8, innovation:8, total:48, pct:80.0, level:"Gold"},
+  {name:"Anna Centenary Library", loc:"Chennai", cert:"LEED NC Gold", site:8, energy:8, water:8, materials:8, indoor:9, innovation:8, total:49, pct:81.7, level:"Gold"},
+  {name:"American Embassy School", loc:"New Delhi", cert:"LEED Gold – High School Building", site:8, energy:8, water:8, materials:8, indoor:9, innovation:8, total:49, pct:81.7, level:"Gold"},
+  {name:"One Horizon Centre", loc:"Gurugram", cert:"LEED Platinum / LEED Zero Water", site:9, energy:9, water:10, materials:9, indoor:9, innovation:10, total:56, pct:93.3, level:"Platinum"},
+];
+
+const grid = document.getElementById('grid');
+const emptyState = document.getElementById('emptyState');
+const searchInput = document.getElementById('searchInput');
+const companySelect = document.getElementById('companySelect');
+const certSelect = document.getElementById('certSelect');
+const locSelect = document.getElementById('locSelect');
+const clearBtn = document.getElementById('clearBtn');
+const overlay = document.getElementById('overlay');
+const modalContent = document.getElementById('modalContent');
+
+// populate stats
+const statsEl = document.getElementById('stats');
+const avgPct = (data.reduce((a,b)=>a+b.pct,0)/data.length).toFixed(1);
+const platinumCount = data.filter(d=>d.level==='Platinum').length;
+const goldCount = data.filter(d=>d.level==='Gold').length;
+const locCount = new Set(data.map(d=>d.loc)).size;
+statsEl.innerHTML = `
+  <div class="stat"><div class="num">${data.length}</div><div class="lbl">Buildings Assessed</div></div>
+  <div class="stat"><div class="num">${avgPct}%</div><div class="lbl">Average Score</div></div>
+  <div class="stat"><div class="num">${platinumCount}</div><div class="lbl">Platinum Rated</div></div>
+  <div class="stat"><div class="num">${goldCount}</div><div class="lbl">Gold Rated</div></div>
+  <div class="stat"><div class="num">${locCount}</div><div class="lbl">Cities</div></div>
+`;
+
+// populate selects
+[...new Set(data.map(d=>d.name))].sort().forEach(n=>{
+  const o = document.createElement('option'); o.value = n; o.textContent = n;
+  companySelect.appendChild(o);
+});
+[...new Set(data.map(d=>d.loc))].sort().forEach(l=>{
+  const o = document.createElement('option'); o.value = l; o.textContent = l;
+  locSelect.appendChild(o);
+});
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  const company = companySelect.value;
+  const cert = certSelect.value;
+  const loc = locSelect.value;
+
+  const filtered = data.filter(d=>{
+    if(company && d.name !== company) return false;
+    if(cert && d.level !== cert) return false;
+    if(loc && d.loc !== loc) return false;
+    if(q && !(d.name.toLowerCase().includes(q) || d.loc.toLowerCase().includes(q))) return false;
+    return true;
+  }).sort((a,b)=>b.pct - a.pct);
+
+  grid.innerHTML = '';
+  if(filtered.length === 0){
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    filtered.forEach((d, i)=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-top">
+          <h3>${d.name}</h3>
+          <span class="badge ${d.level}">${d.level}</span>
+        </div>
+        <div class="loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 10.5c0 6-8.5 11-8.5 11s-8.5-5-8.5-11a8.5 8.5 0 0 1 17 0Z"/><circle cx="12" cy="10.5" r="2.5"/></svg>${d.loc}</div>
+        <div class="score-row">
+          <div class="bar-track"><div class="bar-fill" style="width:${d.pct}%"></div></div>
+          <div class="pct">${d.pct}%</div>
+        </div>
+        <div class="cert-text">${d.total}/60 total &middot; ${d.cert.length > 46 ? d.cert.slice(0,46)+'…' : d.cert}</div>
+      `;
+      card.addEventListener('click', ()=>openModal(d));
+      grid.appendChild(card);
+    });
+  }
+}
+
+function openModal(d){
+  const hasBreakdown = d.site !== null && d.site !== undefined;
+  const detailHtml = hasBreakdown ? `
+    <div class="detail-grid">
+      <div class="detail-item"><div class="dl">Sustainable Site</div><div class="dv">${d.site}/10</div></div>
+      <div class="detail-item"><div class="dl">Energy Efficiency</div><div class="dv">${d.energy}/10</div></div>
+      <div class="detail-item"><div class="dl">Water Efficiency</div><div class="dv">${d.water}/10</div></div>
+      <div class="detail-item"><div class="dl">Materials & Resources</div><div class="dv">${d.materials}/10</div></div>
+      <div class="detail-item"><div class="dl">Indoor Env. Quality</div><div class="dv">${d.indoor}/10</div></div>
+      <div class="detail-item"><div class="dl">Innovation</div><div class="dv">${d.innovation}/10</div></div>
+    </div>
+  ` : '';
+  modalContent.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2>${d.name}</h2>
+        <div class="loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;vertical-align:-1px;margin-right:4px;"><path d="M20.5 10.5c0 6-8.5 11-8.5 11s-8.5-5-8.5-11a8.5 8.5 0 0 1 17 0Z"/><circle cx="12" cy="10.5" r="2.5"/></svg>${d.loc}</div>
+      </div>
+      <button class="close-btn" id="closeBtn">&times;</button>
+    </div>
+    <div class="total-box">
+      <div>
+        <div class="tl">Total Score</div>
+        <div class="tv">${d.total} / 60</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="tl">Percentage</div>
+        <div class="tv">${d.pct}%</div>
+      </div>
+      <span class="badge ${d.level}">${d.level}</span>
+    </div>
+    ${detailHtml}
+    <div class="cert-full"><strong>Certification:</strong> ${d.cert}</div>
+  `;
+  overlay.classList.add('active');
+  document.getElementById('closeBtn').addEventListener('click', closeModal);
+}
+function closeModal(){ overlay.classList.remove('active'); }
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+
+// ---- Score Calculator ----
+function getLevel(pct){
+  if(pct >= 90) return 'Platinum';
+  if(pct >= 80) return 'Gold';
+  if(pct >= 70) return 'Silver';
+  if(pct >= 60) return 'Bronze';
+  return 'Certified';
+}
+
+const calcIds = ['c_site','c_energy','c_water','c_materials','c_indoor','c_innovation'];
+const crTotalVal = document.getElementById('crTotalVal');
+const crPctVal = document.getElementById('crPctVal');
+const crBadge = document.getElementById('crBadge');
+const addToListBtn = document.getElementById('addToListBtn');
+
+function updateCalc(){
+  let total = 0;
+  calcIds.forEach(id=>{
+    let v = parseFloat(document.getElementById(id).value);
+    if(isNaN(v)) v = 0;
+    v = Math.max(0, Math.min(10, v));
+    total += v;
+  });
+  const pct = Math.round((total/60)*1000)/10;
+  const level = getLevel(pct);
+  crTotalVal.textContent = total.toFixed(1).replace(/\.0$/,'');
+  crPctVal.textContent = pct + '%';
+  crBadge.textContent = level;
+  crBadge.className = 'cr-badge ' + level;
+  return { total, pct, level };
+}
+
+calcIds.forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateCalc);
+});
+updateCalc();
+
+addToListBtn.addEventListener('click', ()=>{
+  const name = document.getElementById('calcName').value.trim() || 'My Building';
+  const loc = document.getElementById('calcLoc').value.trim() || 'Unspecified';
+  const { total, pct, level } = updateCalc();
+  const vals = {};
+  const keys = ['site','energy','water','materials','indoor','innovation'];
+  calcIds.forEach((id,i)=>{
+    let v = parseFloat(document.getElementById(id).value);
+    if(isNaN(v)) v = 0;
+    vals[keys[i]] = Math.max(0, Math.min(10, v));
+  });
+  data.push({
+    name, loc, cert: `Self-assessed — ${level} category`,
+    site: vals.site, energy: vals.energy, water: vals.water,
+    materials: vals.materials, indoor: vals.indoor, innovation: vals.innovation,
+    total: Math.round(total*10)/10, pct, level
+  });
+  // refresh filter dropdowns
+  if(![...companySelect.options].some(o=>o.value===name)){
+    const o = document.createElement('option'); o.value = name; o.textContent = name;
+    companySelect.appendChild(o);
+  }
+  if(![...locSelect.options].some(o=>o.value===loc)){
+    const o = document.createElement('option'); o.value = loc; o.textContent = loc;
+    locSelect.appendChild(o);
+  }
+  render();
+  document.getElementById('grid').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+searchInput.addEventListener('input', render);
+companySelect.addEventListener('change', render);
+certSelect.addEventListener('change', render);
+locSelect.addEventListener('change', render);
+clearBtn.addEventListener('click', ()=>{
+  searchInput.value=''; companySelect.value=''; certSelect.value=''; locSelect.value='';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
